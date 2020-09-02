@@ -13,6 +13,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
+        <a href={`${process.env.PUBLIC_URL}`}>Home</a>
         <Route path={`${process.env.PUBLIC_URL}/`} exact component={SpotifyComponent}></Route>
         <Route path={`${process.env.PUBLIC_URL}/spotify/callback`} component={SpotifyExchangeCodeForAccessToken}></Route>
         <Route path={`${process.env.PUBLIC_URL}/generate/:playlist_id`} component={GeneratePlaylist}></Route>
