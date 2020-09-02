@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "https://anthonybishopric.com/intervallist/precache-manifest.c2b9b14bcf04cf1bf8a1998e13ad10e1.js"
+  "https://anthonybishopric.com/intervallist/precache-manifest.2deffecbf1452aa328b4b2968841bec8.js"
 );
 
 self.addEventListener('message', (event) => {
