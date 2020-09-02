@@ -19,26 +19,36 @@ export class Intervals extends Component {
     createBarChart() {
         const node = this.node
 
+        const intervalYOffset = 50; // gives space for artwork
+
         let yValues = this.props.data.intervalData.map(interval => (
             interval.ftpPercent
         ));
 
-        let toGraph = []; // contains exact dimensions for graphing
+        let intervalsToGraph = []; // contains exact dimensions for graphing
         var absoluteTimePosition = 0;
         for (var i = 0; i < this.props.data.intervalData.length; i++) {
             var dims = { x: absoluteTimePosition, y: yValues[i] };
-            absoluteTimePosition += this.props.data.intervalData[i].durationSecs / 8;
+            absoluteTimePosition += this.props.data.intervalData[i].durationSecs;
             dims.width = absoluteTimePosition - dims.x;
-            toGraph.push(dims);
-
+            intervalsToGraph.push(dims);
         }
 
+        let artworkToGraph = [];
+        if (this.props.playlistData) {
+            var absoluteTimePosition = 0;
+            for (let song of this.props.playlistData) {
+                artworkToGraph.push({x: absoluteTimePosition, y: this.props.size[1] - intervalYOffset, song: song})
+                absoluteTimePosition += song.durationMs / 1000;
+            }
+        }
+        
         const dataMax = max([max(yValues), 200]); // 200 = % of FTP, not pixel size
         const yScale = scaleLinear()
             .domain([0, dataMax])
             .range([0, this.props.size[1]]);
 
-        const maxX = toGraph[toGraph.length-1].x + toGraph[toGraph.length-1].width;
+        const maxX = intervalsToGraph[intervalsToGraph.length-1].x + intervalsToGraph[intervalsToGraph.length-1].width;
         const xScale = scaleLinear()
             .domain([0,  maxX])
             .range([0, this.props.size[0]]);
@@ -53,7 +63,19 @@ export class Intervals extends Component {
             .selectAll('rect')
             .data(yValues)
             .exit()
-            .remove()
+            .remove();
+
+        select(node)
+            .selectAll('image')
+            .data(artworkToGraph)
+            .enter()
+            .append('image');
+
+        select(node)
+            .selectAll('image')
+            .data(artworkToGraph)
+            .exit()
+            .remove();
 
         let colorRange = scaleLinear()
             .domain([0, 200]) // 200 = % of FTP, not pixel size
@@ -62,7 +84,7 @@ export class Intervals extends Component {
 
         select(node)
             .selectAll('rect')
-            .data(toGraph)
+            .data(intervalsToGraph)
             .attr('fill', (d, i) => colorRange(d.y))
             .attr('x', (d, i) => xScale(d.x))
             .attr('y', d => this.props.size[1] - yScale(d.y))
@@ -87,6 +109,16 @@ export class Intervals extends Component {
         select(node)
             .selectAll('path')
             .data([1])
+
+        select(node)
+            .selectAll('image')
+            .data(artworkToGraph)
+            .append("image")
+            .attr('x', (d) => xScale(d.x))
+            .attr('y', yScale(intervalYOffset))
+            .attr('width', 64)
+            .attr('height', 64)
+            .attr("xlink:href", (d) => d.song.artwork);
 
     }
     render() {

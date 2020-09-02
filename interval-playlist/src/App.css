@@ -31,6 +31,15 @@ body {
   color: #61dafb;
 }
 
+.playlist-display table {
+  width: 85%;
+  text-align: right;
+}
+
+.playlist-display td {
+  text-decoration: double;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

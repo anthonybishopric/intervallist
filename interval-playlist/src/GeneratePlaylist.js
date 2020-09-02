@@ -15,6 +15,7 @@ class GeneratePlaylist extends React.Component {
     constructor(props) {
       super(props);
       this.stateMachine = new StateMachine();
+      this.getSongWithArtwork = this.getSongWithArtwork.bind(this);
       this.playlistId = props.match.params.playlist_id;
   
       let ssBreak = {
@@ -253,23 +254,39 @@ class GeneratePlaylist extends React.Component {
         </tr>
       });
 
-      let intensities = this.stateMachine.computeIntervalIntensities(this.state.selectedWorkout.intervalData).map((intensity, i) => (
-        <div key={"intensity-" + i}>{intensity.state} for {moment.duration(intensity.durationSecs, "seconds").humanize()}</div>
+      let playlist = this.computePlaylist();
+
+      let intensities = playlist.map((intensity, i) => (
+        <tr key={"intensity-" + i}>
+          <td>{intensity.intensity.state} for {moment.duration(intensity.intensity.durationSecs, "seconds").humanize()}</td>
+          <td>
+            {intensity.songs.map(song => 
+              <span key={"intensity-" + i + "-song-" + song.id}><img src={song.artwork} title={song.name}/></span>
+            )}
+          </td>
+          <td>
+            {moment.duration(intensity.songs.map(song => song.durationMs).reduce((a,b)=> a+b), "milliseconds").humanize()}
+          </td>
+        </tr> 
       ));
 
+
       return <div>
-        <Intervals 
-          data={this.state.selectedWorkout} 
-          size={[window.innerWidth, 300]}
-          playlistData={this.computePlaylist()}></Intervals>
-        <div>
-          {intensities}
-        </div>
         <form>
           <label><input type="radio" name="workout" value="Sweet Spot" onChange={this.updateWorkout(this.workouts.sweetSpot)} /> Sweet Spot</label>
           <label><input type="radio" name="workout" value="VO2 Max" onChange={this.updateWorkout(this.workouts.vO2Max)} /> vO2 Max</label>
           <label><input type="radio" name="workout" value="Sprints" onChange={this.updateWorkout(this.workouts.sprints)} /> Sprints</label>
+          <label><input type="radio" name="workout" value="Custom" disabled /> Custom</label>
         </form>
+        <Intervals 
+          data={this.state.selectedWorkout} 
+          size={[window.innerWidth*.99, 300]}
+          playlistData={playlist}></Intervals>
+        <div className="playlist-display">
+          <table>
+            <tbody>{intensities}</tbody>
+          </table>
+        </div>
         <hr></hr>
         <table>
           <thead>
@@ -303,7 +320,7 @@ class GeneratePlaylist extends React.Component {
       
       if (Object.keys(this.state.playlistData).length - Object.keys(this.state.songData).length > 10) {
         // we are missing song data for a decent chunk of songs, don't continue;
-        return;
+        return [];
       }
 
       let songs = {
@@ -311,6 +328,32 @@ class GeneratePlaylist extends React.Component {
         SS_INTERVAL: this.getSSSongs(),
         VO2_INTERVAL: this.getVO2MaxSongs()
       };
+
+      for (let song of this.getWarmupSongs()) {
+        console.log(song.id + "\t" + song.duration_ms);
+      }
+
+      let oneMin = [];
+      let twoMin = [];
+      let thirtySec = [];
+      let ninetySec = [];
+
+      twoMin.push("60JoeD2lqbdEdHJKWpr4fR");
+      oneMin.push("7gwRSZ0EmGWa697ZrE58GA");
+      oneMin.push("2JlC2hgOEYEUAUzZEEMPgA");
+      twoMin.push("4CECHdtCQxRw0RNnuBe38V");
+      ninetySec.push("0ctfhLgKb9qQIHlN3Gebmt");
+      thirtySec.push("6ycpWuXW7hxgsT0cRcCFJX");
+      thirtySec.push("6BZR3QtpAX74TNGvjBw0ce");
+      oneMin.push("1dgTolpKW9lnFpDuX0hSaS");
+      oneMin.push("46bub9IoIo1gbmvLKdvSzG");
+      oneMin.push("6ceKf0vFlAS9yvvoC4l2zq");
+      oneMin.push("0SMxJhM52yVnA7H1oEY6e7");
+      oneMin.push("0SMKzTJ7OQdIADSyWN6l62");
+      oneMin.push("0Z1hc8dk4gvPRv9cskhtKX");
+      thirtySec.push("2f0g5LMi7DMcFxhUSlKbDc");
+      oneMin.push("0juXJUnKNGLiJCqPO1sY2a");
+      oneMin.push("0ziDFYykduFnaDJY0l0Eew");
 
       let playlist = [];
 
@@ -325,7 +368,9 @@ class GeneratePlaylist extends React.Component {
         let candidateSongs = songs[intensities[i].state];
         let highIntensitySetMs = intensities[i].durationSecs * 1000;
         let durationRemainingMs = highIntensitySetMs + previousIntensityRemainderMs;
-        if (i < intensities.length-1) {
+        
+        // include the next interval too if it's considered a cooldown
+        if (i < intensities.length-1 && !songs[intensities[i+1].state]) {
           durationRemainingMs += intensities[i+1].durationSecs * 1000;
         }
         // if this is an intensity we have songs for (ie, not a cooldown), proceed to add songs.
@@ -365,44 +410,48 @@ class GeneratePlaylist extends React.Component {
           let decompressionTime = durationRemainingMs - remainder;
           selectedIntensitySongs.push({
             id: "decompression",
-            duration_ms: decompressionTime
+            durationMs: decompressionTime
           })
           previousIntensityRemainderMs = remainder;
-          playlist = playlist.concat(selectedIntensitySongs);
+          playlist.push({
+            intensity: intensities[i],
+            songs: selectedIntensitySongs.map(this.getSongWithArtwork)
+          });
         }
       }
-      return playlist.map((song) => {
-        if (song.id == 'decompression') {
-          return song
-        }
-        
-        var artwork = null;
-        let playlistSongInfo = this.state.playlistData[song.id].track;
+      return playlist
+    };
 
-        if (playlistSongInfo.album && playlistSongInfo.album.images) {
-          for (let i = 0; i < playlistSongInfo.album.images.length; i++) {
-            let albumImages = playlistSongInfo.album.images[i];
-            if (albumImages.height <= 64) {
-              artwork = albumImages.url;
-              break;
-            }
+    getSongWithArtwork(song) {
+      if (song.id == 'decompression') {
+        return song
+      }
+      var artwork = null;
+      let playlistSongInfo = this.state.playlistData[song.id].track;
+
+      if (playlistSongInfo.album && playlistSongInfo.album.images) {
+        for (let i = 0; i < playlistSongInfo.album.images.length; i++) {
+          let albumImages = playlistSongInfo.album.images[i];
+          if (albumImages.height <= 64) {
+            artwork = albumImages.url;
+            break;
           }
         }
+      }
 
-        var artist = null;
-        if (playlistSongInfo.artists && playlistSongInfo.artists.length > 0) {
-          artist = playlistSongInfo.artists[0].name;
-        }
+      var artist = null;
+      if (playlistSongInfo.artists && playlistSongInfo.artists.length > 0) {
+        artist = playlistSongInfo.artists[0].name;
+      }
 
-        return {
-          id: song.id,
-          durationMs: song.duration_ms,
-          artwork: artwork,
-          name: playlistSongInfo.name,
-          artist: artist
-        }
-      })
-    };
+      return {
+        id: song.id,
+        durationMs: song.duration_ms,
+        artwork: artwork,
+        name: playlistSongInfo.name,
+        artist: artist
+      };
+    }
 
     songFeaturesAsArray() {
       return Object.keys(this.state.songData).map((key) => this.state.songData[key]);
