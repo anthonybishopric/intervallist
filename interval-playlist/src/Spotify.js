@@ -23,6 +23,32 @@ class Spotify {
 
     /**
      * 
+     * @param {string} name of the playlist
+     */
+    async createPlaylist(name, description) {
+        return axios.post("https://api.spotify.com/v1/me/playlists", {
+            name: name,
+            public: false,
+            collaborative: false,
+            description: description
+        }, this.headers());
+    }
+
+    /**
+     * 
+     * @param {string} playlistId of the playlist
+     * @param {Array} songs with an ID field 
+     */
+    async addSongsToPlaylist(playlistId, songs) {
+        console.log(songs);
+        let uris = songs.map(song => `spotify:track:${song.id}`)
+        return axios.post("https://api.spotify.com/v1/playlists/" + playlistId + "/tracks", {
+            uris: uris
+        }, this.headers());
+    }
+
+    /**
+     * 
      * @param {Array} trackIds array
      * @param {Function} trackDataCallback function
      */

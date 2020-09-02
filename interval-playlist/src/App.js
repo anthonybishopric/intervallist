@@ -32,7 +32,7 @@ class SpotifyComponent extends React.Component {
   }
 
   handleLoginClick() {
-    var scopes = "user-read-email playlist-read-collaborative playlist-read-private";
+    var scopes = "user-read-email playlist-read-collaborative playlist-read-private playlist-modify-private playlist-modify-public";
     var url = 'https://accounts.spotify.com/authorize' +
       '?response_type=token' +
       '&client_id=' + SPOTIFY_CLIENT_ID + '&scope=' + encodeURIComponent(scopes) +

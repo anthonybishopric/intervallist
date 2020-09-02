@@ -16,6 +16,7 @@ class GeneratePlaylist extends React.Component {
       super(props);
       this.stateMachine = new StateMachine();
       this.getSongWithArtwork = this.getSongWithArtwork.bind(this);
+      this.createPlaylistOnSpotify = this.createPlaylistOnSpotify.bind(this);
       this.playlistId = props.match.params.playlist_id;
   
       let ssBreak = {
@@ -286,6 +287,7 @@ class GeneratePlaylist extends React.Component {
           <table>
             <tbody>{intensities}</tbody>
           </table>
+          <a href="#" onClick={() => this.createPlaylistOnSpotify(playlist)}>Create this playlist</a>
         </div>
         <hr></hr>
         <table>
@@ -421,6 +423,19 @@ class GeneratePlaylist extends React.Component {
       }
       return playlist
     };
+
+    createPlaylistOnSpotify(playlist) {
+      let self = this;
+      let allSongs = [].concat(...playlist.map((intensity) => (
+        intensity.songs.filter((song) => song.id != "decompression")
+      )));
+      this.spotify.createPlaylist(this.state.selectedWorkout.name + " on " + moment().format('LLLL'))
+        .then((resp) => {
+          self.spotify.addSongsToPlaylist(resp.data.id, allSongs)
+            .then(resp => console.log("success"))
+            .catch(err => console.log(err.response));
+        });
+    }
 
     getSongWithArtwork(song) {
       if (song.id == 'decompression') {
