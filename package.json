@@ -16,8 +16,8 @@
     "react-scripts": "3.4.3"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "REACT_APP_APP_URL=http://localhost:3000 react-scripts start",
+    "build": "REACT_APP_APP_URL=https://brave-fermat-9e723d.netlify.app react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

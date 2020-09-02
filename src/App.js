@@ -36,7 +36,7 @@ class SpotifyComponent extends React.Component {
     var url = 'https://accounts.spotify.com/authorize' +
       '?response_type=token' +
       '&client_id=' + SPOTIFY_CLIENT_ID + '&scope=' + encodeURIComponent(scopes) +
-      '&redirect_uri=' + encodeURIComponent(`https://anthonybishopric.com/intervallist/spotify/callback`);
+      '&redirect_uri=' + encodeURIComponent(`${process.env.REACT_APP_APP_URL}/spotify/callback`);
     window.location.href = url;
   }
 
