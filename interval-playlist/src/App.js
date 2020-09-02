@@ -9,6 +9,8 @@ import { BrowserRouter, Route, Link, Redirect } from "react-router-dom";
 
 const SPOTIFY_CLIENT_ID = 'ca1d41a2da864fd6812b292fedd8adb8';
 
+const host = process.env.PUBLIC_URL || 'http://localhost:3000';
+
 function App() {
   return (
     <BrowserRouter>
@@ -35,7 +37,7 @@ class SpotifyComponent extends React.Component {
     var url = 'https://accounts.spotify.com/authorize' +
       '?response_type=token' +
       '&client_id=' + SPOTIFY_CLIENT_ID + '&scope=' + encodeURIComponent(scopes) +
-      '&redirect_uri=' + encodeURIComponent(`${process.env.PUBLIC_URL}/spotify/callback`);
+      '&redirect_uri=' + encodeURIComponent(`${host}/spotify/callback`);
     window.location.href = url;
   }
 
