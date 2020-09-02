@@ -13,9 +13,9 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
-        <Route path="/" exact component={SpotifyComponent}></Route>
-        <Route path="/spotify/callback" component={SpotifyExchangeCodeForAccessToken}></Route>
-        <Route path="/generate/:playlist_id" component={GeneratePlaylist}></Route>
+        <Route path={`${process.env.PUBLIC_URL}/`} exact component={SpotifyComponent}></Route>
+        <Route path={`${process.env.PUBLIC_URL}/spotify/callback`} component={SpotifyExchangeCodeForAccessToken}></Route>
+        <Route path={`${process.env.PUBLIC_URL}/generate/:playlist_id`} component={GeneratePlaylist}></Route>
       </div>
     </BrowserRouter>
   );
@@ -35,7 +35,7 @@ class SpotifyComponent extends React.Component {
     var url = 'https://accounts.spotify.com/authorize' +
       '?response_type=token' +
       '&client_id=' + SPOTIFY_CLIENT_ID + '&scope=' + encodeURIComponent(scopes) +
-      '&redirect_uri=' + encodeURIComponent('http://localhost:3000/spotify/callback');
+      '&redirect_uri=' + encodeURIComponent(`${process.env.PUBLIC_URL}/spotify/callback`);
     window.location.href = url;
   }
 
@@ -44,7 +44,7 @@ class SpotifyComponent extends React.Component {
     if (this.spotifyAccessCode) {
       var listItems = this.state.playlists.map(playlist => (
         <div key={playlist.id}>
-          <Link to={{ pathname: "/generate/" + playlist.id }} className="App-link"> {playlist.name} ({playlist.tracks.total} Tracks)</Link>
+          <Link to={{ pathname: `${process.env.PUBLIC_URL}/generate/` + playlist.id }} className="App-link"> {playlist.name} ({playlist.tracks.total} Tracks)</Link>
         </div>
       ));
       var spotifyError;
